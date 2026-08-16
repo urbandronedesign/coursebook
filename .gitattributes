@@ -1,0 +1,4 @@
+# Keep line endings LF everywhere. These files are copied into other people's
+# repos on Linux, macOS and Windows, and build-zip.py's determinism depends on
+# text content being byte-identical across hosts.
+* text=auto eol=lf
