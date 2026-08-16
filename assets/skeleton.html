@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<!-- ============================================================================
+     COURSEBOOK SKELETON · a bilingual, self-contained course manual
+     ----------------------------------------------------------------------------
+     Fill this in. Do not restructure it. Every mechanism below (language,
+     search, year bands, figures, print) depends on the class contract described
+     in references/architecture.md.
+
+     Before writing content, replace:
+       COURSE TITLE / TITRE       the course name
+       SCHOOL                     the institution
+       EDITION                    e.g. "Edition 2026.1"
+       cb-                         localStorage prefix — see architecture.md
+     ============================================================================ -->
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<title>COURSE TITLE</title>
+<meta name="description" content="One sentence. Shown by search engines and when the link is pasted into a chat.">
+<style>
+:root{
+  --paper:#ffffff;
+  --ink:#1a1c1e;
+  --ink-2:#52585f;
+  --ink-3:#6d747b;
+  --rule:#e8eaec;
+  --rule-2:#c8ccd1;
+  --accent:#0f6d72;
+  --wash:#f6f7f8;
+  --warn:#a4352c;
+  --fix:#8a5c14;
+  --sidebar-w:18.5rem;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,"Cascadia Code",Consolas,"Courier New",monospace;
+  --topbar:rgba(255,255,255,.94);
+  --shadow:rgba(0,0,0,.10);
+  --measure:41rem;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{font-size:100%;scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--sans);
+  background:var(--paper); color:var(--ink);
+  line-height:1.68; font-size:1.03rem;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ===== dark palette ===== */
+@media(prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#14161a; --ink:#e4e7ea; --ink-2:#a6aeb6; --ink-3:#79828b;
+    --rule:#252a30; --rule-2:#39424b; --accent:#5fb8bd; --wash:#1a1d22;
+    --warn:#e59288; --fix:#d5a557;
+    --topbar:rgba(20,22,26,.94); --shadow:rgba(0,0,0,.55);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#14161a; --ink:#e4e7ea; --ink-2:#a6aeb6; --ink-3:#79828b;
+  --rule:#252a30; --rule-2:#39424b; --accent:#5fb8bd; --wash:#1a1d22;
+  --warn:#e59288; --fix:#d5a557;
+  --topbar:rgba(20,22,26,.94); --shadow:rgba(0,0,0,.55);
+}
+
+/* ===== typography ===== */
+h1,h2,h3,h4,.chapter-eyebrow,.part-divider h2,.brand b,.brand span,.toc-part,
+#sidebar a,#topbar,#search,.seg button,.callout .lbl,th,.lv-tag,.status,
+.exercise>.hd,.exercise h4,details.faq summary,figcaption,
+.shot-todo .id,.shot-todo .what,.shot-todo .file,
+.res em,.res b,.res span,.cover .meta,footer.book,
+.pr .pr-hd,.pr .pr-copy,.spec dt,.chips b{font-family:var(--sans)}
+code,pre,.pr pre{font-family:var(--mono)}
+
+/* ===== filtering =====
+   The whole bilingual system is these two selectors. Everything else is content. */
+body.lang-fr .en-only, body.lang-en .fr-only{display:none !important}
+
+/* Year bands are cumulative: content is tagged with the LOWEST band that needs it.
+   data-level="p" = practitioner and up · data-level="r" = research only
+   Delete this block and the level buttons if your course has one audience. */
+body.lvl-a12 [data-level="p"],
+body.lvl-a12 [data-level="r"],
+body.lvl-a3  [data-level="r"]{display:none !important}
+
+/* ===== layout ===== */
+.layout{display:flex}
+
+#sidebar{
+  width:var(--sidebar-w); flex:0 0 var(--sidebar-w);
+  border-right:1px solid var(--rule);
+  height:100vh; position:sticky; top:0; overflow-y:auto;
+  padding:2.2rem 0 4rem; background:var(--paper);
+}
+#sidebar::-webkit-scrollbar{width:6px}
+#sidebar::-webkit-scrollbar-thumb{background:var(--rule-2)}
+.brand{padding:0 1.8rem 1.4rem}
+.brand b{display:block; font-size:.9rem; font-weight:600; line-height:1.4; letter-spacing:-.01em}
+.brand span{display:block; color:var(--ink-3); font-size:.68rem; margin-top:.35rem; letter-spacing:.09em; text-transform:uppercase}
+.toc-part{
+  padding:1.5rem 1.8rem .45rem; font-size:.63rem; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--ink-3); font-weight:600;
+}
+#sidebar a{
+  display:block; padding:.3rem 1.4rem .3rem 1.8rem; color:var(--ink-2);
+  text-decoration:none; font-size:.845rem; line-height:1.45;
+  border-left:2px solid transparent; transition:color .12s;
+}
+#sidebar a:hover{color:var(--ink)}
+#sidebar a.active{color:var(--ink); font-weight:600; border-left-color:var(--ink)}
+#sidebar a .num{color:var(--ink-3); margin-right:.5rem; font-variant-numeric:tabular-nums; font-weight:400}
+
+main{flex:1; min-width:0; padding:0 3.5rem 8rem; max-width:calc(var(--measure) + 7rem); margin:0 auto}
+
+/* ===== topbar ===== */
+#topbar{
+  position:sticky; top:0; z-index:900; background:var(--topbar);
+  backdrop-filter:blur(10px); border-bottom:1px solid var(--rule);
+  margin:0 -3.5rem 3rem; padding:.7rem 3.5rem;
+  display:flex; gap:.55rem; align-items:center; flex-wrap:wrap;
+}
+#menu-btn{display:none}
+.search-wrap{position:relative; flex:1; min-width:160px}
+#search{
+  width:100%; background:transparent; border:none; border-bottom:1px solid var(--rule);
+  padding:.4rem .2rem .4rem 1.5rem; color:var(--ink); font-size:.86rem; font-family:inherit;
+}
+#search:focus{outline:none; border-bottom-color:var(--ink)}
+#search::placeholder{color:var(--ink-3)}
+.search-wrap::before{content:"⌕"; position:absolute; left:.1rem; top:50%; transform:translateY(-50%); color:var(--ink-3); font-size:1.05rem}
+.seg{display:flex; gap:0; border:1px solid var(--rule); border-radius:2px; overflow:hidden}
+.seg button{
+  background:none; border:none; color:var(--ink-3); padding:.3rem .68rem;
+  font-weight:500; cursor:pointer; font-size:.73rem; font-family:inherit;
+  letter-spacing:.06em; transition:.12s; white-space:nowrap; border-right:1px solid var(--rule);
+}
+.seg button:last-child{border-right:none}
+.seg button:hover{color:var(--ink)}
+.seg button.on{background:var(--ink); color:var(--paper)}
+#menu-btn{color:var(--ink)}
+
+/* ===== search results ===== */
+#results{display:none; margin-bottom:3rem}
+body.searching #results{display:block}
+body.searching #book{display:none}
+.res{
+  display:block; padding:.85rem 0; border-bottom:1px solid var(--rule);
+  text-decoration:none; color:var(--ink);
+}
+.res:hover b{text-decoration:underline}
+.res em{display:block; color:var(--ink-3); font-size:.66rem; text-transform:uppercase; letter-spacing:.1em; font-style:normal; margin-bottom:.2rem}
+.res b{display:block; font-size:.94rem; font-weight:600}
+.res span{display:block; color:var(--ink-2); font-size:.83rem; margin-top:.15rem; line-height:1.5}
+
+/* ===== cover ===== */
+.cover{padding:4.5rem 0 4rem; border-bottom:1px solid var(--rule); margin-bottom:4rem}
+.cover h1{font-size:2.4rem; font-weight:600; letter-spacing:-.028em; line-height:1.15; margin-bottom:1rem}
+.cover .sub{color:var(--ink-2); font-size:1.06rem; line-height:1.55; max-width:34rem}
+.cover .meta{color:var(--ink-3); font-size:.72rem; margin-top:2rem; letter-spacing:.11em; text-transform:uppercase}
+
+/* ===== headings ===== */
+h2.chapter{font-size:1.75rem; font-weight:600; letter-spacing:-.022em; line-height:1.2; margin:0 0 1.6rem}
+.chapter-eyebrow{
+  display:block; color:var(--ink-3); font-size:.68rem; font-weight:600;
+  letter-spacing:.14em; text-transform:uppercase; margin-bottom:.7rem;
+}
+h3{font-size:1.14rem; font-weight:600; letter-spacing:-.012em; margin:2.8rem 0 .9rem; line-height:1.35}
+h4{font-size:.94rem; font-weight:600; margin:1.8rem 0 .55rem; color:var(--ink)}
+p{margin-bottom:1.15rem}
+section.chap{scroll-margin-top:70px; padding-top:2rem; margin-bottom:5rem}
+.part-divider{margin:6rem 0 3rem; padding-top:2rem; border-top:2px solid var(--ink)}
+.part-divider h2{font-size:1.3rem; font-weight:600; letter-spacing:-.015em}
+.part-divider p{color:var(--ink-2); font-size:.92rem; margin:.35rem 0 0}
+a{color:var(--accent); text-underline-offset:.15em}
+code{font-size:.845em; background:var(--wash); padding:.08rem .32rem; border-radius:2px; color:var(--ink)}
+.path{font-weight:600; white-space:nowrap; font-size:.95em}
+strong{font-weight:600}
+em{font-style:italic}
+ul,ol{margin:0 0 1.2rem 0; padding-left:0; list-style:none}
+ol{counter-reset:li}
+ul li,ol li{position:relative; padding-left:1.5rem; margin-bottom:.55rem}
+ul li::before{content:""; position:absolute; left:.35rem; top:.72em; width:4px; height:1px; background:var(--rule-2)}
+ol li{counter-increment:li}
+ol li::before{content:counter(li) "."; position:absolute; left:0; color:var(--ink-3); font-variant-numeric:tabular-nums; font-size:.9em}
+li ul{margin-top:.45rem; margin-bottom:.1rem}
+
+/* ===== boxes & callouts ===== */
+.box{border:1px solid var(--rule); padding:1.4rem 1.5rem; margin:1.6rem 0}
+.callout{border-left:2px solid var(--rule-2); padding:.15rem 0 .15rem 1.2rem; margin:1.7rem 0; font-size:.95rem}
+.callout .lbl{
+  display:block; font-size:.63rem; font-weight:700; letter-spacing:.14em;
+  text-transform:uppercase; margin-bottom:.45rem; color:var(--ink-3);
+}
+.callout p:last-child,.callout ul:last-child,.callout ol:last-child,.callout .tbl-wrap:last-child{margin-bottom:0}
+.c-doc{border-left-color:var(--ink)}          .c-doc .lbl{color:var(--ink)}
+.c-warn{border-left-color:var(--warn)}        .c-warn .lbl{color:var(--warn)}
+.c-fix{border-left-color:var(--fix)}          .c-fix .lbl{color:var(--fix)}
+.c-tip{border-left-color:var(--rule-2)}
+.c-teach{border-left-color:var(--accent)}     .c-teach .lbl{color:var(--accent)}
+
+/* ===== level tags ===== */
+.lv-tag{
+  display:inline-block; font-size:.6rem; font-weight:600; letter-spacing:.1em;
+  padding:.06rem .34rem; vertical-align:.1em; margin-left:.4rem;
+  text-transform:uppercase; border:1px solid var(--rule-2); color:var(--ink-3); border-radius:2px;
+}
+
+/* ===== tables ===== */
+.tbl-wrap{overflow-x:auto; margin:1.7rem 0}
+table{width:100%; border-collapse:collapse; font-variant-numeric:lining-nums tabular-nums; font-size:.885rem; min-width:480px}
+th,td{padding:.62rem .9rem .62rem 0; text-align:left; vertical-align:top; border-bottom:1px solid var(--rule)}
+th{
+  border-bottom:1px solid var(--ink); font-weight:600; font-size:.68rem;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3); padding-bottom:.5rem;
+}
+td:last-child,th:last-child{padding-right:0}
+td code{font-size:.84em}
+
+/* ===== code ===== */
+pre{
+  background:var(--wash); padding:1.1rem 1.2rem; font-size:.79rem;
+  color:var(--ink); overflow-x:auto; margin:1.5rem 0; line-height:1.65; white-space:pre-wrap;
+  border-left:2px solid var(--rule-2);
+}
+pre .cm{color:var(--ink-3)}
+
+/* ===== copyable blocks =====
+   For anything the reader is meant to lift verbatim: a prompt, a command, a
+   snippet. The copy button is attached to the block, not to the page. */
+.pr{margin:1.6rem 0; border:1px solid var(--rule); background:var(--wash)}
+.pr-hd{
+  display:flex; align-items:center; gap:.6rem; padding:.5rem .9rem;
+  border-bottom:1px solid var(--rule); font-size:.63rem; font-weight:700;
+  letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+}
+.pr-hd .who{
+  border:1px solid var(--rule-2); border-radius:2px; padding:.04rem .3rem;
+  font-weight:600; letter-spacing:.08em; color:var(--ink-2);
+}
+.pr-hd .sp{flex:1}
+.pr-copy{
+  background:none; border:1px solid var(--rule-2); border-radius:2px; cursor:pointer;
+  color:var(--ink-3); font-size:.6rem; font-weight:600; letter-spacing:.1em;
+  text-transform:uppercase; padding:.12rem .42rem; font-family:inherit; transition:.12s;
+}
+.pr-copy:hover{color:var(--ink); border-color:var(--ink)}
+.pr-copy.done{color:var(--accent); border-color:var(--accent)}
+.pr pre{margin:0; background:none; border-left:none; padding:.95rem 1.1rem; font-size:.775rem}
+.pr .var{color:var(--accent); font-weight:600}
+
+/* ===== spec lists ===== */
+.spec{display:grid; grid-template-columns:auto 1fr; gap:.3rem 1rem; margin:1.2rem 0; font-size:.86rem}
+.spec dt{color:var(--ink-3); font-size:.66rem; letter-spacing:.1em; text-transform:uppercase; font-weight:600; padding-top:.22rem}
+.spec dd{color:var(--ink-2); margin:0}
+
+/* ===== two-column comparison ===== */
+.grid-2{display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin:1.7rem 0}
+.grid-2 > div{border:1px solid var(--rule); padding:1.1rem 1.2rem}
+.grid-2 h4{margin-top:0}
+@media(max-width:760px){ .grid-2{grid-template-columns:1fr} }
+
+/* ===== figure slots ===== */
+.shot{margin:2rem 0}
+.shot-frame img{display:none; width:100%; height:auto; border:1px solid var(--rule)}
+.shot.has-image .shot-frame img{display:block}
+.shot.has-image .shot-todo{display:none}
+.shot-todo{padding:1.5rem 1.4rem; border:1px dashed var(--rule-2); background:var(--wash)}
+.shot-todo .id{
+  display:inline-block; font-family:var(--mono); font-size:.66rem;
+  font-weight:700; letter-spacing:.1em; color:var(--ink-3); text-transform:uppercase;
+}
+.shot-todo .what{color:var(--ink-2); font-size:.88rem; margin-top:.5rem; line-height:1.55}
+.shot-todo .file{display:block; color:var(--ink-3); font-size:.73rem; margin-top:.6rem; font-family:var(--mono)}
+figcaption{color:var(--ink-3); font-size:.79rem; margin-top:.6rem; line-height:1.5}
+
+/* ===== exercise / stage ===== */
+.exercise{border-top:2px solid var(--ink); border-bottom:1px solid var(--rule); padding:1.5rem 0 1.6rem; margin:2.8rem 0}
+.exercise > .hd{font-weight:600; font-size:.68rem; letter-spacing:.14em; text-transform:uppercase; margin-bottom:1rem}
+.exercise h4{margin-top:1.3rem; font-size:.8rem; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-3); font-weight:600}
+.exercise h4:first-of-type{margin-top:0}
+
+/* ===== FAQ ===== */
+details.faq{border-bottom:1px solid var(--rule)}
+details.faq summary{
+  padding:.8rem 0; cursor:pointer; font-weight:500; list-style:none;
+  display:flex; align-items:flex-start; gap:.7rem; font-size:.945rem; line-height:1.5;
+}
+details.faq summary::-webkit-details-marker{display:none}
+details.faq summary::before{content:"+"; color:var(--ink-3); flex:0 0 .8rem; font-weight:400; line-height:1.5}
+details.faq[open] summary::before{content:"–"}
+details.faq[open] summary{font-weight:600}
+.faq-body{padding:0 0 1.1rem 1.5rem; font-size:.93rem; color:var(--ink-2)}
+.faq-body p:last-child,.faq-body ul:last-child{margin-bottom:0}
+.faq-group{
+  margin:2.4rem 0 .4rem; font-size:.66rem; font-weight:700; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--ink-3); padding-bottom:.4rem; border-bottom:1px solid var(--ink);
+}
+
+/* ===== misc ===== */
+.status{
+  display:inline-block; font-size:.6rem; font-weight:600; letter-spacing:.1em;
+  text-transform:uppercase; padding:.06rem .34rem; margin-left:.4rem; vertical-align:.1em;
+  border:1px solid var(--rule-2); color:var(--ink-3); border-radius:2px;
+}
+footer.book{border-top:1px solid var(--rule); margin-top:6rem; padding:2.5rem 0; color:var(--ink-3); font-size:.78rem; letter-spacing:.03em}
+footer.book p{margin-bottom:.5rem}
+
+/* ===== responsive ===== */
+@media(max-width:1000px){
+  #sidebar{
+    position:fixed; left:0; top:0; z-index:1000; transform:translateX(-100%);
+    transition:transform .2s ease; box-shadow:0 0 40px var(--shadow);
+  }
+  body.nav-open #sidebar{transform:translateX(0)}
+  #menu-btn{display:block}
+  main{padding:0 1.3rem 5rem}
+  #topbar{margin:0 -1.3rem 2rem; padding:.6rem 1.3rem}
+  .cover{padding:2.5rem 0 2.5rem; margin-bottom:2.5rem}
+  .cover h1{font-size:1.7rem}
+  h2.chapter{font-size:1.45rem}
+  body{font-size:1rem}
+}
+@media(min-width:1001px){ html{font-size:110%} }
+@media(min-width:1001px) and (max-width:1200px){
+  main{padding:0 2rem 8rem}
+  #topbar{margin:0 -2rem 3rem; padding:.7rem 2rem}
+}
+@media(min-width:1400px){ html{font-size:115%} }
+
+/* ===== print ===== */
+@media print{
+  :root{--paper:#fff; --ink:#000; --topbar:#fff; --shadow:transparent; --ink-2:#333; --ink-3:#666;
+        --rule:#ccc; --rule-2:#999; --wash:#f4f4f4; --accent:#000; --warn:#000; --fix:#000}
+  #sidebar,#topbar,#results,.pr-copy{display:none !important}
+  body{font-size:10.5pt; color:#000}
+  main{max-width:none; padding:0}
+  .layout{display:block}
+  section.chap{page-break-before:always; padding-top:0}
+  .cover{border-bottom:1px solid #000}
+  .box,.callout,.exercise,.shot-todo,.pr,.grid-2 > div{page-break-inside:avoid}
+  details.faq{page-break-inside:avoid}
+  details.faq .faq-body{display:block !important}
+  details.faq summary::before{content:""}
+  a{color:#000; text-decoration:none}
+  pre{background:#f4f4f4}
+  h3,h4{page-break-after:avoid}
+}
+
+/* Unfilled figure slots are hidden from readers. Append ?figures to the URL to
+   reveal them — that is the maintainer's view of what is still missing. */
+.shot:not(.has-image){display:none}
+body.show-figures .shot:not(.has-image){display:block}
+body.show-figures .shot-todo{display:block}
+
+/* ===== diagrams ===== */
+.diagram{margin:2.2rem 0}
+.diagram svg{width:100%; height:auto; display:block; overflow:visible}
+.diagram figcaption{margin-top:.9rem}
+.diagram-wide{overflow-x:auto; overflow-y:hidden}
+.diagram-wide svg{min-width:660px}
+@media print{.diagram-wide{overflow:visible}.diagram-wide svg{min-width:0}.diagram svg{max-height:9cm}}
+
+.dg-frame{fill:none; stroke:var(--rule); stroke-width:1}
+.dg-fill{fill:var(--wash); stroke:none}
+.dg-band{fill:var(--paper); stroke:var(--rule-2); stroke-width:1}
+.dg-node{fill:var(--paper); stroke:var(--ink-3); stroke-width:1}
+.dg-deliver{fill:var(--wash); stroke:var(--ink); stroke-width:1.4}
+.dg-ink{stroke:var(--ink); fill:none; stroke-width:1.4; stroke-linecap:round}
+.dg-good{stroke:var(--accent); fill:none; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round}
+.dg-bad{stroke:var(--warn); fill:none; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round}
+.dg-dash{stroke:var(--ink-3); fill:none; stroke-width:1; stroke-dasharray:4 3}
+.dg-grid{stroke:var(--rule-2); stroke-width:.8}
+.dg-arrow{stroke:var(--ink); fill:none; stroke-width:1.3; marker-end:url(#ah)}
+.dg-return{fill:none; stroke:var(--warn); stroke-width:1.4; stroke-dasharray:5 4; marker-end:url(#ah)}
+.dg-t{font-variant-numeric:lining-nums; font:400 12px var(--sans); fill:var(--ink-2)}
+.dg-tb{font:600 12px var(--sans); fill:var(--ink); letter-spacing:.03em}
+.dg-ts{font:400 10.5px var(--sans); fill:var(--ink-3)}
+.dg-tn{font:500 10.5px var(--mono); fill:var(--ink-2)}
+.dg-tm{font:500 10.5px var(--mono); fill:var(--accent)}
+.dg-numt{font:600 11px var(--sans); fill:var(--paper); text-anchor:middle}
+</style>
+</head>
+
+<body class="lang-fr">
+<div class="layout">
+
+<!-- ======================= SIDEBAR ======================= -->
+<nav id="sidebar">
+  <div class="brand">
+    <b><span class="fr-only">COURSE TITRE</span><span class="en-only">COURSE TITLE</span></b>
+    <span>SCHOOL · EDITION</span>
+  </div>
+
+  <div class="toc-part"><span class="fr-only">Préambule</span><span class="en-only">Preamble</span></div>
+  <a href="#how"><span class="fr-only">Comment utiliser ce manuel</span><span class="en-only">How to use this manual</span></a>
+
+  <div class="toc-part"><span class="fr-only">Partie I · Fondations</span><span class="en-only">Part I · Foundations</span></div>
+  <a href="#ch1"><span class="num">1</span><span class="fr-only">Titre du chapitre</span><span class="en-only">Chapter title</span></a>
+
+  <div class="toc-part"><span class="fr-only">Référence</span><span class="en-only">Reference</span></div>
+  <a href="#faq"><span class="fr-only">FAQ</span><span class="en-only">FAQ</span></a>
+  <a href="#glossary"><span class="fr-only">Glossaire FR/EN</span><span class="en-only">Glossary FR/EN</span></a>
+</nav>
+
+<!-- ======================= MAIN ======================= -->
+<main>
+
+<div id="topbar">
+  <div class="seg"><button id="menu-btn" onclick="document.body.classList.toggle('nav-open')">☰</button></div>
+  <div class="search-wrap">
+    <input id="search" type="search" autocomplete="off"
+      placeholder="Rechercher…  ( / )"
+      data-ph-fr="Rechercher…  ( / )"
+      data-ph-en="Search…  ( / )">
+  </div>
+  <!-- Delete this whole .seg if the course has a single audience -->
+  <div class="seg">
+    <button data-lv="a12" onclick="setLevel('a12')">A1·2</button>
+    <button data-lv="a3"  onclick="setLevel('a3')">A3</button>
+    <button data-lv="all" class="on" onclick="setLevel('all')">A4·5</button>
+  </div>
+  <div class="seg">
+    <button data-lang="fr" class="on" onclick="setLang('fr')">FR</button>
+    <button data-lang="en" onclick="setLang('en')">EN</button>
+  </div>
+  <div class="seg">
+    <button data-theme-btn="light" onclick="setTheme('light')" title="Thème clair" aria-label="Thème clair">☀</button>
+    <button data-theme-btn="dark" onclick="setTheme('dark')" title="Thème sombre" aria-label="Thème sombre">☾</button>
+  </div>
+</div>
+
+<div id="results"></div>
+
+<div id="book">
+
+<div class="cover">
+  <div class="fr-only">
+    <h1>COURSE TITRE</h1>
+    <p class="sub">Une ou deux phrases qui disent ce que le lecteur saura faire à la fin. Pas ce que le cours « aborde ».</p>
+  </div>
+  <div class="en-only">
+    <h1>COURSE TITLE</h1>
+    <p class="sub">One or two sentences saying what the reader will be able to do by the end. Not what the course "covers".</p>
+  </div>
+  <p class="meta">SCHOOL · EDITION</p>
+</div>
+
+<!-- ───────────────────────── PREAMBLE ───────────────────────── -->
+<section class="chap" id="how">
+  <div class="fr-only">
+    <span class="chapter-eyebrow">Préambule</span>
+    <h2 class="chapter">Comment utiliser ce manuel</h2>
+    <p>Trois façons de le lire :</p>
+    <ul>
+      <li><strong>En entier</strong>, dans l'ordre, si vous produisez le projet pour la première fois.</li>
+      <li><strong>Par étape</strong>, en revenant au chapitre du moment.</li>
+      <li><strong>Par question</strong>, via la recherche en haut de page ou la <a href="#faq">FAQ</a>.</li>
+    </ul>
+  </div>
+  <div class="en-only">
+    <span class="chapter-eyebrow">Preamble</span>
+    <h2 class="chapter">How to use this manual</h2>
+    <p>Three ways to read it:</p>
+    <ul>
+      <li><strong>Front to back</strong>, in order, if you are producing the project for the first time.</li>
+      <li><strong>By stage</strong>, returning to whichever chapter you are in.</li>
+      <li><strong>By question</strong>, using the search box at the top or the <a href="#faq">FAQ</a>.</li>
+    </ul>
+  </div>
+</section>
+
+<div class="part-divider">
+  <div class="fr-only"><h2>Partie I · Fondations</h2><p>Ce que la partie établit, en une phrase.</p></div>
+  <div class="en-only"><h2>Part I · Foundations</h2><p>What this part establishes, in one sentence.</p></div>
+</div>
+
+<!-- ───────────────────────── CHAPTER 1 ─────────────────────────
+     Pattern: one <section class="chap"> per chapter, holding a .fr-only
+     block and an .en-only block. Both blocks carry the SAME h3 numbering
+     and the SAME identifiers — the audit checks that.
+     ────────────────────────────────────────────────────────────── -->
+<section class="chap" id="ch1">
+
+  <!-- ===== FR ===== -->
+  <div class="fr-only">
+    <span class="chapter-eyebrow">Chapitre 1</span>
+    <h2 class="chapter">Titre du chapitre</h2>
+    <p>Le premier paragraphe dit pourquoi le chapitre existe, pas ce qu'il contient.</p>
+
+    <h3>1.1 Première section</h3>
+    <p>Corps du texte.</p>
+
+    <div class="callout c-warn">
+      <span class="lbl">Le piège</span>
+      <p>L'erreur que tout le monde commet ici, et ce qu'elle coûte.</p>
+    </div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Colonne</th><th>Colonne</th></tr></thead>
+        <tbody>
+          <tr><td>Valeur</td><td>Valeur</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pr">
+      <div class="pr-hd"><span class="who">Étape 1</span><span>Ce que ce bloc produit</span><span class="sp"></span>
+        <button class="pr-copy" onclick="prCopy(this)">Copier</button></div>
+<pre>Le contenu à copier, tel quel.
+Les <span class="var">CHAMPS_À_REMPLIR</span> en accent.</pre>
+    </div>
+
+    <h3>1.2 Section réservée aux niveaux avancés <span class="lv-tag">A3+</span></h3>
+    <div data-level="p">
+      <p>Ce bloc disparaît pour A1·2, et sort aussi de l'index de recherche.</p>
+    </div>
+
+    <div class="exercise">
+      <div class="hd">Étape 1 · Le geste à faire</div>
+      <h4>Ce que vous faites</h4>
+      <p>L'action, à l'impératif.</p>
+      <h4>Vous pouvez passer à la suite quand</h4>
+      <ul><li>Un critère observable, pas « quand c'est bien ».</li></ul>
+    </div>
+
+    <figure class="shot" id="fig-example">
+      <div class="shot-frame">
+        <img src="images/example.png" alt="" onload="this.closest('.shot').classList.add('has-image')">
+      </div>
+      <div class="shot-todo">
+        <span class="id">Figure 1</span>
+        <p class="what">Ce que la capture doit montrer, assez précisément pour qu'un tiers puisse la prendre.</p>
+        <span class="file">images/example.png</span>
+      </div>
+      <figcaption>La légende dit ce qu'il faut regarder, pas ce que c'est.</figcaption>
+    </figure>
+  </div>
+
+  <!-- ===== EN ===== -->
+  <div class="en-only">
+    <span class="chapter-eyebrow">Chapter 1</span>
+    <h2 class="chapter">Chapter title</h2>
+    <p>The opening paragraph says why the chapter exists, not what it contains.</p>
+
+    <h3>1.1 First section</h3>
+    <p>Body text.</p>
+
+    <div class="callout c-warn">
+      <span class="lbl">The trap</span>
+      <p>The mistake everyone makes here, and what it costs.</p>
+    </div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Column</th><th>Column</th></tr></thead>
+        <tbody>
+          <tr><td>Value</td><td>Value</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pr">
+      <div class="pr-hd"><span class="who">Stage 1</span><span>What this block produces</span><span class="sp"></span>
+        <button class="pr-copy" onclick="prCopy(this)">Copy</button></div>
+<pre>The content to copy, as is.
+<span class="var">FIELDS_TO_FILL</span> in the accent colour.</pre>
+    </div>
+
+    <h3>1.2 A section for advanced levels only <span class="lv-tag">A3+</span></h3>
+    <div data-level="p">
+      <p>This block disappears for A1·2, and leaves the search index too.</p>
+    </div>
+
+    <div class="exercise">
+      <div class="hd">Stage 1 · The thing to do</div>
+      <h4>What you do</h4>
+      <p>The action, in the imperative.</p>
+      <h4>Ready to move on when</h4>
+      <ul><li>An observable criterion, not "when it is good".</li></ul>
+    </div>
+
+    <figure class="shot" id="fig-example-en">
+      <div class="shot-frame">
+        <img src="images/example.png" alt="" onload="this.closest('.shot').classList.add('has-image')">
+      </div>
+      <div class="shot-todo">
+        <span class="id">Figure 1</span>
+        <p class="what">What the capture must show, precisely enough that someone else could take it.</p>
+        <span class="file">images/example.png</span>
+      </div>
+      <figcaption>The caption says what to look at, not what it is.</figcaption>
+    </figure>
+  </div>
+
+</section>
+
+<!-- ───────────────────────── FAQ ───────────────────────── -->
+<section class="chap" id="faq">
+  <div class="fr-only">
+    <span class="chapter-eyebrow">Référence</span>
+    <h2 class="chapter">FAQ</h2>
+    <div class="faq-group">Un groupe de questions</div>
+    <details class="faq">
+      <summary>La question, dans les mots de l'étudiant.</summary>
+      <div class="faq-body"><p>La réponse. Courte. Elle renvoie au chapitre si elle doit être longue.</p></div>
+    </details>
+  </div>
+  <div class="en-only">
+    <span class="chapter-eyebrow">Reference</span>
+    <h2 class="chapter">FAQ</h2>
+    <div class="faq-group">A group of questions</div>
+    <details class="faq">
+      <summary>The question, in the student's words.</summary>
+      <div class="faq-body"><p>The answer. Short. It points at the chapter if it needs to be long.</p></div>
+    </details>
+  </div>
+</section>
+
+<!-- ───────────────────────── GLOSSARY ─────────────────────────
+     One table, both languages in the same rows — a glossary is the one place
+     where seeing FR and EN side by side is the point. -->
+<section class="chap" id="glossary">
+  <div class="fr-only"><span class="chapter-eyebrow">Référence</span><h2 class="chapter">Glossaire FR/EN</h2></div>
+  <div class="en-only"><span class="chapter-eyebrow">Reference</span><h2 class="chapter">Glossary FR/EN</h2></div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr>
+        <th>FR</th><th>EN</th>
+        <th><span class="fr-only">Ce que ça veut dire ici</span><span class="en-only">What it means here</span></th>
+      </tr></thead>
+      <tbody>
+        <tr><td>Terme</td><td>Term</td>
+            <td><span class="fr-only">La définition telle qu'elle vaut dans ce cours.</span><span class="en-only">The definition as it applies in this course.</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<footer class="book">
+  <div class="fr-only">
+    <p><strong>COURSE TITRE</strong> · SCHOOL · EDITION</p>
+    <p>Auteur. Licence. Comment signaler une erreur.</p>
+  </div>
+  <div class="en-only">
+    <p><strong>COURSE TITLE</strong> · SCHOOL · EDITION</p>
+    <p>Author. Licence. How to report an error.</p>
+  </div>
+</footer>
+
+</div><!-- /#book -->
+</main>
+</div><!-- /.layout -->
+
+<script>
+/* ---------- Language ---------- */
+function setLang(l){
+  document.body.classList.remove('lang-fr','lang-en');
+  document.body.classList.add('lang-'+l);
+  document.querySelectorAll('[data-lang]').forEach(function(b){ b.classList.toggle('on', b.dataset.lang===l); });
+  var s=document.getElementById('search');
+  s.placeholder = l==='fr' ? s.dataset.phFr : s.dataset.phEn;
+  document.documentElement.lang = l;
+  try{localStorage.setItem('cb-lang',l)}catch(e){}
+  buildIndex();
+}
+
+/* ---------- Theme ---------- */
+function setTheme(t){
+  document.documentElement.setAttribute('data-theme', t);
+  document.querySelectorAll('[data-theme-btn]').forEach(function(b){
+    b.classList.toggle('on', b.getAttribute('data-theme-btn') === t);
+  });
+  try{localStorage.setItem('cb-theme', t)}catch(e){}
+}
+
+/* ---------- Year-band filter ----------
+   Bands are cumulative. Rebuilding the index keeps search honest: it must not
+   surface a section the filter is hiding. */
+function setLevel(lv){
+  document.body.classList.remove('lvl-a12','lvl-a3');
+  if(lv==='a12') document.body.classList.add('lvl-a12');
+  if(lv==='a3')  document.body.classList.add('lvl-a3');
+  document.querySelectorAll('[data-lv]').forEach(function(b){ b.classList.toggle('on', b.dataset.lv===lv); });
+  try{localStorage.setItem('cb-level',lv)}catch(e){}
+  buildIndex();
+}
+
+/* ---------- Copy a block ---------- */
+function prCopy(btn){
+  var pre = btn.closest('.pr').querySelector('pre');
+  if(!pre) return;
+  var txt = pre.innerText;
+  var done = function(){
+    var old = btn.textContent;
+    btn.textContent = document.body.classList.contains('lang-fr') ? 'Copié' : 'Copied';
+    btn.classList.add('done');
+    setTimeout(function(){ btn.textContent = old; btn.classList.remove('done'); }, 1600);
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(done).catch(function(){ selectPre(pre); });
+  } else {
+    selectPre(pre);
+  }
+}
+function selectPre(pre){
+  var r=document.createRange(); r.selectNodeContents(pre);
+  var sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+}
+
+/* ---------- Search ---------- */
+var INDEX=[];
+function activeLang(){ return document.body.classList.contains('lang-fr') ? 'fr' : 'en'; }
+/* true when the element is not inside the language that is currently hidden */
+function inActiveLang(el){
+  return !el.closest(activeLang()==='fr' ? '.en-only' : '.fr-only');
+}
+/* true when the element sits in a year band the filter is currently hiding */
+function bandHidden(el){
+  var n = el.closest('[data-level]');
+  if(!n) return false;
+  var lv = n.getAttribute('data-level'), c = document.body.classList;
+  return (c.contains('lvl-a12') && (lv === 'p' || lv === 'r')) ||
+         (c.contains('lvl-a3')  &&  lv === 'r');
+}
+/* an element earns a place in the search index only if it is actually on screen */
+function indexable(el){ return inActiveLang(el) && !bandHidden(el); }
+function visibleText(el){
+  var c=el.cloneNode(true), lang=activeLang();
+  c.querySelectorAll(lang==='fr'?'.en-only':'.fr-only').forEach(function(n){ n.remove(); });
+  return c.textContent.replace(/\s+/g,' ').trim();
+}
+function buildIndex(){
+  INDEX=[];
+  document.querySelectorAll('section.chap').forEach(function(sec){
+    var titles=Array.from(sec.querySelectorAll('h2.chapter')).filter(indexable).map(visibleText).filter(Boolean);
+    var chapTitle=titles[0]||sec.id;
+    INDEX.push({id:sec.id, title:chapTitle, crumb:chapTitle, text:visibleText(sec).slice(0,4000)});
+    sec.querySelectorAll('h3,h4').forEach(function(hd){
+      if(!indexable(hd)) return;
+      var t=visibleText(hd); if(!t) return;
+      INDEX.push({id:sec.id, title:t, crumb:chapTitle, text:t});
+    });
+    sec.querySelectorAll('details.faq').forEach(function(d){
+      if(!indexable(d)) return;
+      var q=visibleText(d.querySelector('summary'));
+      var body=d.querySelector('.faq-body');
+      var a=body?visibleText(body):'';
+      if(q) INDEX.push({id:sec.id, title:q, crumb:chapTitle, text:q+' '+a, faq:d});
+    });
+    sec.querySelectorAll('tbody tr').forEach(function(tr){
+      if(!indexable(tr)) return;
+      var t=visibleText(tr); if(t.length>12) INDEX.push({id:sec.id, title:t.slice(0,90), crumb:chapTitle, text:t});
+    });
+    sec.querySelectorAll('.pr').forEach(function(p){
+      if(!indexable(p)) return;
+      var t=visibleText(p); if(t) INDEX.push({id:sec.id, title:visibleText(p.querySelector('.pr-hd')), crumb:chapTitle, text:t});
+    });
+  });
+}
+function esc(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}
+document.getElementById('search').addEventListener('input', function(e){
+  var q=e.target.value.trim();
+  var out=document.getElementById('results');
+  if(q.length<2){ document.body.classList.remove('searching'); out.innerHTML=''; return; }
+  document.body.classList.add('searching');
+  var terms=q.toLowerCase().split(/\s+/);
+  var hits=INDEX.map(function(it){
+    var hay=(it.title+' '+it.text).toLowerCase(), score=0;
+    terms.forEach(function(t){
+      if(it.title.toLowerCase().indexOf(t)>-1) score+=6;
+      var m=hay.match(new RegExp(esc(t),'g')); if(m) score+=m.length;
+    });
+    return {it:it, score:score};
+  }).filter(function(h){return h.score>0}).sort(function(a,b){return b.score-a.score}).slice(0,25);
+
+  if(!hits.length){
+    var none = activeLang()==='fr' ? 'Aucun résultat.' : 'No results.';
+    out.innerHTML='<p style="color:var(--ink-3)">'+none+'</p>'; return;
+  }
+  out.innerHTML = hits.map(function(h){
+    var snip=h.it.text.slice(0,180)+(h.it.text.length>180?'…':'');
+    return '<a class="res" href="#'+h.it.id+'" data-i="'+INDEX.indexOf(h.it)+'">'+
+           '<em>'+h.it.crumb+'</em><b>'+h.it.title+'</b><span>'+snip+'</span></a>';
+  }).join('');
+});
+document.getElementById('results').addEventListener('click', function(e){
+  var a=e.target.closest('.res'); if(!a) return;
+  var item=INDEX[+a.dataset.i];
+  document.getElementById('search').value='';
+  document.body.classList.remove('searching');
+  if(item && item.faq){ item.faq.open=true; setTimeout(function(){item.faq.scrollIntoView({block:'center'})},60); }
+});
+
+/* ---------- Keyboard: / focuses search, Esc clears it ---------- */
+document.addEventListener('keydown', function(e){
+  var s=document.getElementById('search');
+  if(e.key==='/' && document.activeElement!==s){ e.preventDefault(); s.focus(); }
+  if(e.key==='Escape'){ s.value=''; document.body.classList.remove('searching'); s.blur(); }
+});
+
+/* ---------- Scroll spy ---------- */
+var links=Array.from(document.querySelectorAll('#sidebar a'));
+var obs=new IntersectionObserver(function(entries){
+  entries.forEach(function(en){
+    if(!en.isIntersecting) return;
+    links.forEach(function(l){ l.classList.toggle('active', l.getAttribute('href')==='#'+en.target.id); });
+  });
+},{rootMargin:'-80px 0px -70% 0px'});
+document.querySelectorAll('section.chap').forEach(function(s){ obs.observe(s); });
+links.forEach(function(l){ l.addEventListener('click', function(){ document.body.classList.remove('nav-open'); }); });
+
+/* ---------- Figure placeholders (maintainers only) ---------- */
+if (/[?&]figures\b/.test(location.search)) document.body.classList.add('show-figures');
+
+/* ---------- Init ---------- */
+(function(){
+  var l='fr', lv='all', th=null;
+  try{ l=localStorage.getItem('cb-lang')||'fr';
+       lv=localStorage.getItem('cb-level')||'all';
+       th=localStorage.getItem('cb-theme'); }catch(e){}
+  setLang(l); setLevel(lv);
+  if(th){ setTheme(th); }
+  else {
+    var dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.querySelectorAll('[data-theme-btn]').forEach(function(b){
+      b.classList.toggle('on', b.getAttribute('data-theme-btn') === (dark ? 'dark' : 'light'));
+    });
+  }
+})();
+</script>
+</body>
+</html>

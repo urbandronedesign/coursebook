@@ -1,0 +1,18 @@
+# Python bytecode from assets/
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*~
+
+# Scratch copies made while testing the assets against a real course
+_*.frag
+_check.js
