@@ -12,6 +12,15 @@ body.lang-fr .en-only, body.lang-en .fr-only{display:none !important}
 
 `<body class="lang-fr">` at load; `setLang()` swaps the class, persists to `localStorage`, sets `document.documentElement.lang`, and rebuilds the search index.
 
+**The language is in the URL.** `?lang=fr|en` wins over the saved choice at load
+(`urlLang()`), and `setLang()` rewrites it with `history.replaceState` (`langUrl()`),
+keeping any other parameter and the `#anchor`. A link copied from the address bar
+therefore opens in the language it was read in — the one thing `localStorage` alone
+cannot do, since it lives in the reader's browser. Order at load: URL → saved → default.
+A meta-refresh `index.html` must forward it too:
+`<script>location.replace('manual.html'+location.search+location.hash)</script>`
+before the `<meta http-equiv="refresh">` (kept as the no-JS fallback).
+
 **Wrapping rules**
 
 | Situation | Use |
@@ -153,7 +162,7 @@ Check print preview whenever you add a component type.
 ## 6 · State
 
 ```js
-localStorage: cb-lang    'fr' | 'en'
+localStorage: cb-lang    'fr' | 'en'   (overridden by ?lang= in the URL)
               cb-theme   'light' | 'dark'   (absent = follow the system)
               cb-level   'a12' | 'a3' | 'all'
 ```
